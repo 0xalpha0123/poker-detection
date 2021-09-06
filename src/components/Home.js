@@ -1,35 +1,83 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import React, { useRef, createRef } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Card from '@material-ui/core/Card';
+import CardActionArea from '@material-ui/core/CardActionArea';
+import CardActions from '@material-ui/core/CardActions';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
 
-const Home = (props) => {
-  const [isJoinRoomDisplayed, setIsJoinRoomDisplayed] = useState(false);
-  const [roomId, setRoomId] = useState('');
-  const history = useHistory();
-  
-  const joinRoom = () => {
-    history.push(`/room/${roomId}`);
-  } 
-  
-  return (
-    <div className="flex flex-col container mx-auto items-center">
-      <h1 className='text-4xl my-4'>Home</h1>
-      <div>
-        <button className='btn-primary'>Create Room</button>
-        <button className='btn-secondary' onClick={() => setIsJoinRoomDisplayed(true)}>Join Room</button>
-      </div>
-      {isJoinRoomDisplayed && (
-        <div className='mt-7'>
-          <input
-            type='text'
-            className='input-control'
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-          />
-          <button className='btn-primary' onClick={joinRoom}>Join</button>
+const useStyles = makeStyles({
+    body: {
+        padding: '15px',
+        marginTop: '50px'
+    },
+    root: {
+        maxWidth: "100%",
+    },
+    media: {
+        height: 140,
+    },
+});
+
+const windows = [
+    'window1',
+    'window2',
+    'window3',
+    'window4',
+]
+
+const Room = () => {
+    const classes = useStyles();
+    const streams = [];
+
+    const videoRefs = useRef([])
+    videoRefs.current = windows.map((title, i) => videoRefs.current[i] ?? createRef());
+
+    const addVideoStream = (video, stream) => {
+        video.srcObject = stream;
+        video.addEventListener('loadedmetadata', () => {
+            video.play();
+        });
+    }
+
+    const removeWindow = (index) => {
+        streams[index].getTracks().forEach((track) => {
+            track.stop();
+        });
+    }
+    
+    const selectWindow = (index) => {
+        navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: false,
+        })
+        .then(stream => {
+            streams[index] = stream;
+            addVideoStream(videoRefs.current[index].current, stream);
+        });
+    } 
+
+    return (
+        <div className={classes.body}>
+            <Grid container spacing={3}>
+            {windows.map((name, index) => {
+                return (
+                    <Grid key={index} item xs={12} sm={6}>
+                        <Card className={classes.root}>
+                            <CardActionArea>
+                                <video className='screen-player' ref={videoRefs.current[index]}></video>
+                            </CardActionArea>
+                            <CardActions>
+                                <Button variant="contained" color="primary" onClick={() => selectWindow(index)}>Start</Button>
+                                <Button variant="contained" color="primary" onClick={() => removeWindow(index)}>Stop</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                )
+            })}
+            </Grid>
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
-export default Home;
+export default Room;

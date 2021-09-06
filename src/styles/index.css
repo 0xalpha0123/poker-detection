@@ -22,5 +22,7 @@
 
 .screen-player {
   height: 200px;
-  margin: 20px;
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
 }
