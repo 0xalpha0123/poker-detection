@@ -1,10 +1,19 @@
-import React, { useRef, createRef } from 'react';
+import React, { useRef, createRef, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+
+import * as tf from '@tensorflow/tfjs';
+import { loadGraphModel } from '@tensorflow/tfjs-converter';
+
+const url = {
+    model: 'models/model.json'
+};
+
+const loaded = false;
 
 const useStyles = makeStyles({
     body: {
@@ -27,11 +36,32 @@ const windows = [
 ]
 
 const Room = () => {
-    const classes = useStyles();
+
     const streams = [];
 
-    const videoRefs = useRef([])
+    const classes = useStyles();
+    const videoRefs = useRef([]);
+    const [model, setModel] = useState();
+
     videoRefs.current = windows.map((title, i) => videoRefs.current[i] ?? createRef());
+
+    useEffect(() => {
+        tf.ready().then(() => {
+            loadModel(url);
+        });
+    }, []);
+
+    async function loadModel(url) {
+        try {
+            console.log(url.model)
+            const model = await tf.loadGraphModel(url.model);
+            setModel(model);
+            console.log("load model success");
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }
 
     const addVideoStream = (video, stream) => {
         video.srcObject = stream;
