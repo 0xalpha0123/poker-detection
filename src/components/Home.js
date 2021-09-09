@@ -133,7 +133,7 @@ const Room = () => {
     const detectFrame = () => {
         if (!model) return requestAnimationFrame(detectFrame);
         tf.engine().startScope();
-        model.executeAsync(preprocess_input(stream)).then(predictions => {
+        model.predict(preprocess_input(stream)).then(predictions => {
             
             requestAnimationFrame(detectFrame);
             console.log(predictions);
